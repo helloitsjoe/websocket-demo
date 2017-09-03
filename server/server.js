@@ -18,7 +18,7 @@ wss.on('connection', (ws) => {
             ws.error(`Error: message must be in json format.`);
         } else {
             let json = JSON.parse(data);
-            
+
             for (let i = 0; i < connections.length; i++) {
                 if (connections[i] === ws) {
                     json.id = i;
@@ -36,17 +36,18 @@ wss.on('connection', (ws) => {
     ws.on('close', () => {
         // TODO: This doesn't seem quite right. Seems like there's a problem
         // with the first connection.
-        for (let i = 0; i < connections.length; i++) {
+        let i;
+        for (i = 0; i < connections.length; i++) {
             // console.log(connections[i])
             if (connections[i] === ws) {
                 broadcast(`Connection to client ${i} closed`);
                 broadcast(`Connections: ${connections.length}`);
                 break;
             }
-            connections.splice(i, 1);
             // client.removeAllListeners();
             // TODO: close client
         }
+        connections.splice(i, 1);
     });
 
     connections.push(ws);
