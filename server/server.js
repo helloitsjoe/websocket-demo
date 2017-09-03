@@ -5,7 +5,8 @@ const WebSocket = require('ws');
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const clients = [];
+const connections = [];
+// let id = 0;
 
 app.use((req, res) => {
     res.send('Hello from server');
@@ -14,20 +15,43 @@ app.use((req, res) => {
 wss.on('connection', (ws) => {
     ws.on('message', (data) => {
         if (data[0] !== `{`) {
-            ws.send(`Message received: ${data}`);
+            ws.error(`Error: message must be in json format.`);
         } else {
             let json = JSON.parse(data);
+            
+            for (let i = 0; i < connections.length; i++) {
+                if (connections[i] === ws) {
+                    json.id = i;
+                }
+            }
             if (json.broadcast) {
-                ws.send('Broadcasting');
-                broadcast(json.message);
+                // ws.send('Broadcasting');
+                broadcast(`Message from ${json.id}: ${json.message}`);
             } else {
                 ws.send(`Message received: ${json.message}`);
             }
         }
     });
 
-    clients.push(ws);
-    broadcast(`Hello from client ${clients.length}!`);
+    ws.on('close', () => {
+        // TODO: This doesn't seem quite right. Seems like there's a problem
+        // with the first connection.
+        for (let i = 0; i < connections.length; i++) {
+            // console.log(connections[i])
+            if (connections[i] === ws) {
+                broadcast(`Connection to client ${i} closed`);
+                broadcast(`Connections: ${connections.length}`);
+                break;
+            }
+            connections.splice(i, 1);
+            // client.removeAllListeners();
+            // TODO: close client
+        }
+    });
+
+    connections.push(ws);
+    broadcast(`Connections: ${connections.length}`);
+    // broadcast(`Hello from client ${connections.length}!`);
 });
 
 const port = 8080;
@@ -35,8 +59,8 @@ server.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
 
-function broadcast(message, origClient) {
-    clients.forEach((client) => {
+function broadcast(message) {
+    wss.clients.forEach((client) => {
         client.send(message);
     });
 }
