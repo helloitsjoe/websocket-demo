@@ -19,7 +19,6 @@ export default class ClientSocket {
     }
 
     onOpen(event:any):void {
-        // this.ws.send('Hello from client!');
         console.log('Connected to server');
     }
 
