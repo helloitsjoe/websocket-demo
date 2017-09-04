@@ -1,16 +1,9 @@
 import { elem } from './Utils';
 import ClientSocket from './ClientSocket';
 
-type buttonMessage = {
-    message:string,
-    broadcast:boolean,
-}
-
-const client = new ClientSocket();
+const client = new ClientSocket('localhost', 8080);
 
 const button = elem('button', document.body, 'Click me!');
 const buttonMessage = 'Click!';
-
-button.addEventListener('click', () => {
-    client.send(buttonMessage);
-});
+const broadcast = true;
+button.addEventListener('click', client.send.bind(client, buttonMessage, broadcast));

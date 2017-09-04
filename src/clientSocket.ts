@@ -1,30 +1,29 @@
 export default class ClientSocket {
 
-    public ws:WebSocket;
+    private ws:WebSocket;
 
-    constructor() {
-        this.ws = new WebSocket('ws://localhost:8080');
-        this.init();
-    }
+    constructor(host:string, port:number) {
+        this.ws = new WebSocket('ws://' + host + ':' + port);
 
-    init() {
-        this.ws.addEventListener('open', (ev) => {
-            // this.ws.send('Hello from client!');
-            console.log('Connected to server');
-        });
-
-        this.ws.addEventListener('message', (ev) => {
-            console.log('From server:', ev.data);
-        });
+        this.ws.addEventListener('open', this.onOpen.bind(this));
+        this.ws.addEventListener('message', this.onMessage.bind(this));
     }
 
     send(message:string, broadcast:boolean = true) {
-        let json;
-        if (typeof message === 'string') {
-            json = { message, broadcast };
+        if (typeof message !== 'string') {
+            console.error('Message must be a string');
         }
-        json = JSON.stringify(json);
+        let json = JSON.stringify({ message, broadcast });
 
         this.ws.send(json);
+    }
+
+    onOpen(event:any):void {
+        // this.ws.send('Hello from client!');
+        console.log('Connected to server');
+    }
+
+    onMessage(event:any):void {
+        console.log('From server:', event.data);
     }
 }
